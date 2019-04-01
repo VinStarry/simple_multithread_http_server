@@ -4,11 +4,11 @@ std::mutex mtx;
 
 string homepage;
 
-enum err { wsaerr, vererr, listenerr, binderr, ioct };	// Ò»Ğ©´íÎóºÅÂëµÄºê¶¨Òå
+enum err { wsaerr, vererr, listenerr, binderr, ioct };	// ä¸€äº›é”™è¯¯å·ç çš„å®å®šä¹‰
 
 /*
 *	Server's constructor
-*	¸ù¾İÅäÖÃÎÄ¼şµÄÅäÖÃ£¬³õÊ¼»¯Ò»Ğ©»ù±¾²ÎÊı£¬°üÀ¨IP,¶Ë¿ÚºÅ,Ö÷Ä¿Â¼µÈ
+*	æ ¹æ®é…ç½®æ–‡ä»¶çš„é…ç½®ï¼Œåˆå§‹åŒ–ä¸€äº›åŸºæœ¬å‚æ•°ï¼ŒåŒ…æ‹¬IP,ç«¯å£å·,ä¸»ç›®å½•ç­‰
 */
 Server::Server(tempConfig tmp) :DEFAULT_BUFLEN(1024),
 MAX_CONNECTION(500),
@@ -24,10 +24,10 @@ DEFAULT_PORT(tmp.defaultPort)
 
 /*
 *	Server's destructor
-*	ÊÍ·Å·şÎñÆ÷ÉêÇëµÄÒ»Ğ©×ÊÔ´ 
+*	é‡Šæ”¾æœåŠ¡å™¨ç”³è¯·çš„ä¸€äº›èµ„æº 
 */
 Server::~Server() {
-	/* Ö÷ÒªÊÇÊÍ·ÅÏß³Ìlist */
+	/* ä¸»è¦æ˜¯é‡Šæ”¾çº¿ç¨‹list */
 	if (threadList) {
 		threadList->clear();
 		delete threadList;
@@ -36,7 +36,7 @@ Server::~Server() {
 }
 
 /*
-*	³õÊ¼»¯Winsock»·¾³
+*	åˆå§‹åŒ–Winsockç¯å¢ƒ
 */
 int Server::initWinsock() {
 	WORD wVersionRequested;
@@ -48,14 +48,14 @@ int Server::initWinsock() {
 	if (err != 0) {
 		/* Tell the user that we could not find a usable */
 		/* Winsock DLL.                                  */
-		/* Winsock»·¾³´´½¨´íÎó */
+		/* Winsockç¯å¢ƒåˆ›å»ºé”™è¯¯ */
 		return 1;
 	}
 
 	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
 		/* Tell the user that we could not find a usable */
 		/* WinSock DLL.                                  */
-		/* È±ÉÙWinsockµÄ¿â */
+		/* ç¼ºå°‘Winsockçš„åº“ */
 		WSACleanup();
 		return 1;
 	}
@@ -63,8 +63,8 @@ int Server::initWinsock() {
 }
 
 /*
-*	´´½¨Ò»¸öÊôÓÚ·şÎñÆ÷µÄSocket
-*	ÓÃÓÚÖ®ºó°ó¶¨
+*	åˆ›å»ºä¸€ä¸ªå±äºæœåŠ¡å™¨çš„Socket
+*	ç”¨äºä¹‹åç»‘å®š
 */
 int Server::createSocket(int &err) {
 	int iResult = 0;
@@ -72,33 +72,33 @@ int Server::createSocket(int &err) {
 
 	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_INET;	// IPV4
-	hints.ai_socktype = SOCK_STREAM;	// TCPÁ÷
+	hints.ai_socktype = SOCK_STREAM;	// TCPæµ
 	hints.ai_protocol = IPPROTO_TCP;	// TCP
 	hints.ai_flags = AI_PASSIVE;
 
-	// ½âÎö±¾µØµÄIPµØÖ·£¬TCPÁ÷µÈµÈ
+	// è§£ææœ¬åœ°çš„IPåœ°å€ï¼ŒTCPæµç­‰ç­‰
 	iResult = getaddrinfo(NULL, this->DEFAULT_PORT.c_str(), &hints, &result);
 	if (iResult != 0) {
-		/* »ñµÃĞÅÏ¢Ê§°Ü */
+		/* è·å¾—ä¿¡æ¯å¤±è´¥ */
 		err = iResult;
 		WSACleanup();
 		return 1;
 	}
 
-	// ´´½¨Ò»¸öÓÃÓÚ¼àÌıµÄSocket
+	// åˆ›å»ºä¸€ä¸ªç”¨äºç›‘å¬çš„Socket
 	this->listenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 
 	if (this->listenSocket == INVALID_SOCKET) {
-		/* ´´½¨¼àÌıSocketÊ§°Ü */
+		/* åˆ›å»ºç›‘å¬Socketå¤±è´¥ */
 		err = WSAGetLastError();
 		freeaddrinfo(result);
 		WSACleanup();
 		return 2;
 	}
-	// ½¨Á¢TCPÁ¬½ÓµÄSocket
+	// å»ºç«‹TCPè¿æ¥çš„Socket
 	iResult = bind(this->listenSocket, result->ai_addr, (int)result->ai_addrlen);
 	if (iResult == SOCKET_ERROR) {
-		/* ½¨Á¢TCPÁ¬½ÓÊ§°Ü */
+		/* å»ºç«‹TCPè¿æ¥å¤±è´¥ */
 		err = WSAGetLastError();
 		freeaddrinfo(result);
 		closesocket(this->listenSocket);
@@ -113,12 +113,12 @@ int Server::createSocket(int &err) {
 }
 
 /*
-*	°ó¶¨ÓÃÓÚ¼àÌıµÄSocket
+*	ç»‘å®šç”¨äºç›‘å¬çš„Socket
 */
 int Server::listenOnSocket(int &err) {
-	// listenº¯ÊıÓÃÓÚ¼àÌı
+	// listenå‡½æ•°ç”¨äºç›‘å¬
 	if (listen(this->listenSocket, MAX_CONNECTION) == SOCKET_ERROR) {
-		// ¼àÌıÊ§°Ü
+		// ç›‘å¬å¤±è´¥
 		closesocket(this->listenSocket);
 		WSACleanup();
 		return 1;
@@ -127,8 +127,8 @@ int Server::listenOnSocket(int &err) {
 }
 
 /*
-*	»ñµÃ¿Í»§¶ËµÄSocketĞÅÏ¢
-*	Ö÷ÒªÓÃÓÚÔÚÆÁÄ»Êä³öDebug
+*	è·å¾—å®¢æˆ·ç«¯çš„Socketä¿¡æ¯
+*	ä¸»è¦ç”¨äºåœ¨å±å¹•è¾“å‡ºDebug
 */
 string GetClientAddress(SOCKET s, int &portNumber) {
 	string clientAddress;
@@ -136,20 +136,20 @@ string GetClientAddress(SOCKET s, int &portNumber) {
 	int nameLen, rtn;
 
 	nameLen = sizeof(clientAddr);
-	rtn = getpeername(s, (LPSOCKADDR)&clientAddr, &nameLen);	// »ñÈ¡ClientµÄIPµØÖ·ĞÅÏ¢
+	rtn = getpeername(s, (LPSOCKADDR)&clientAddr, &nameLen);	// è·å–Clientçš„IPåœ°å€ä¿¡æ¯
 	char str[INET_ADDRSTRLEN];
 	if (rtn != SOCKET_ERROR) {
-		clientAddress += inet_ntop(AF_INET, &clientAddr.sin_addr, str, sizeof(str));	// IPĞÅÏ¢ĞŞ¸Ä¸ñÊ½
+		clientAddress += inet_ntop(AF_INET, &clientAddr.sin_addr, str, sizeof(str));	// IPä¿¡æ¯ä¿®æ”¹æ ¼å¼
 	}
-	portNumber = ntohs(clientAddr.sin_port);	// »ñµÃ¶Ë¿ÚºÅ
+	portNumber = ntohs(clientAddr.sin_port);	// è·å¾—ç«¯å£å·
 
 	return clientAddress;
 }
 
 
 /*
-*	½ÓÊÕ¿Í»§¶ËµÄÁ¬½Ó
-*	Ö÷Ïß³ÌÊ¹ÓÃ£¬Ã¿µ±½ÓÊÕµ½Ò»¸öĞÂÁ¬½Ó¾Í´´½¨Ò»¸ö×ÓÏß³Ì
+*	æ¥æ”¶å®¢æˆ·ç«¯çš„è¿æ¥
+*	ä¸»çº¿ç¨‹ä½¿ç”¨ï¼Œæ¯å½“æ¥æ”¶åˆ°ä¸€ä¸ªæ–°è¿æ¥å°±åˆ›å»ºä¸€ä¸ªå­çº¿ç¨‹
 */
 SOCKET Server::acceptConnections(QString &info) {
 	SOCKET clientSocket;
@@ -158,24 +158,24 @@ SOCKET Server::acceptConnections(QString &info) {
 
 	clientSocket = INVALID_SOCKET;
 
-	/* ÊÕµ½¿Í»§¶ËµÄÁ¬½ÓÇëÇó */
+	/* æ”¶åˆ°å®¢æˆ·ç«¯çš„è¿æ¥è¯·æ±‚ */
 	if (FD_ISSET(this->listenSocket, &this->readfds)) {
-		/* ½ÓÊÕÇëÇó */
+		/* æ¥æ”¶è¯·æ±‚ */
 		clientSocket = accept(this->listenSocket, NULL, NULL);
 		if (clientSocket == INVALID_SOCKET) {
-			// ¿Í»§¶ËSocket²»ºÏ·¨
+			// å®¢æˆ·ç«¯Socketä¸åˆæ³•
 			closesocket(clientSocket);
 			WSACleanup();
 		}
 
-		/* ÉèÖÃ·Ç×èÈûÄ£Ê½ */
+		/* è®¾ç½®éé˜»å¡æ¨¡å¼ */
 		else {
 			if (ioctlsocket(clientSocket, FIONBIO, &blockMode) == SOCKET_ERROR)
-				;//·Ç×èÈûÉèÖÃÊ§°Ü
+				;//éé˜»å¡è®¾ç½®å¤±è´¥
 			int portNumber = 0;
 			mtx.lock();
 			string clientAddress = GetClientAddress(clientSocket, portNumber);
-			clientAddress += (":" + to_string(portNumber) + " has come to service\n" ); // Êä³öĞÅÏ¢
+			clientAddress += (":" + to_string(portNumber) + " has come to service\n" ); // è¾“å‡ºä¿¡æ¯
 			info += QString::fromStdString(clientAddress);
 			mtx.unlock();
 		}
@@ -185,9 +185,9 @@ SOCKET Server::acceptConnections(QString &info) {
 }
 
 /*
-*	´Ó¿Í»§¶Ë½ÓÊÕĞÅÏ¢ 
-*	×ÓÏß³Ì´¦Àí£¬ÊÇÒ»¸öËÀÑ­»·
-*	ÍÆ³öÌõ¼şÓĞ2£¬1.Ê®ÃëÄÚÃ»ÓĞÁ¬½Ó£¬2.ÊÕµ½ÁËÖ÷Ïß³ÌµÄendĞÅºÅ
+*	ä»å®¢æˆ·ç«¯æ¥æ”¶ä¿¡æ¯ 
+*	å­çº¿ç¨‹å¤„ç†ï¼Œæ˜¯ä¸€ä¸ªæ­»å¾ªç¯
+*	æ¨å‡ºæ¡ä»¶æœ‰2ï¼Œ1.åç§’å†…æ²¡æœ‰è¿æ¥ï¼Œ2.æ”¶åˆ°äº†ä¸»çº¿ç¨‹çš„endä¿¡å·
 */
 void Server::receiveMessageFromClient(SOCKET client, size_t bufLen)
 
@@ -197,26 +197,26 @@ void Server::receiveMessageFromClient(SOCKET client, size_t bufLen)
 		fd_set wfds;
 		fd_set rfds;
 
-		// ÇåÁãÎÄ¼şÃèÊö·û
+		// æ¸…é›¶æ–‡ä»¶æè¿°ç¬¦
 		FD_ZERO(&rfds);
 		FD_ZERO(&wfds);
 
-		// ¿Í»§¶Ë¿É¶Á¿ÉĞ´
+		// å®¢æˆ·ç«¯å¯è¯»å¯å†™
 		FD_SET(client, &rfds);
 		FD_SET(client, &wfds);
 
-		const timeval timeOut = { 10, 0 };	// ³¬Ê±ÉèÖÃÎª10s
+		const timeval timeOut = { 10, 0 };	// è¶…æ—¶è®¾ç½®ä¸º10s
 		int portNumber = 0;
 
-		select(0, &rfds, nullptr, nullptr, &timeOut);	// 10ÃëÄÚ²»¿É¶Á
-		select(0, nullptr, &wfds, nullptr, &timeOut);	// 10ÃëÄÚ²»¿ÉĞ¹
+		select(0, &rfds, nullptr, nullptr, &timeOut);	// 10ç§’å†…ä¸å¯è¯»
+		select(0, nullptr, &wfds, nullptr, &timeOut);	// 10ç§’å†…ä¸å¯å†™
 
 		if (endSignal == true) {
-			// Èç¹ûÊÕµ½ÁËendµÄĞÅºÅ
+			// å¦‚æœæ”¶åˆ°äº†endçš„ä¿¡å·
 			mtx.lock();
 			string s = GetClientAddress(client, portNumber);
 			string t = ("Close connection with " + s + ":" + to_string(portNumber) + ".\n");
-			// ¹Ø±ÕÁ¬½ÓÌáÊ¾
+			// å…³é—­è¿æ¥æç¤º
 			this->messageQueue.push(t);
 			mtx.unlock();
 			closesocket(client);
@@ -224,10 +224,10 @@ void Server::receiveMessageFromClient(SOCKET client, size_t bufLen)
 		}
 
 		if (!(FD_ISSET(client, &rfds) && FD_ISSET(client, &wfds))) {
-			/* ÎÄ¼şÃèÊö·ûÊ§Ğ§£¬¼´²»¿É¶ÁÒ²²»¿ÉĞ´ */
+			/* æ–‡ä»¶æè¿°ç¬¦å¤±æ•ˆï¼Œå³ä¸å¯è¯»ä¹Ÿä¸å¯å†™ */
 			mtx.lock();
 			string s = GetClientAddress(client, portNumber);
-			// ÆÁÄ»ÉÏÊä³öĞÅÏ¢
+			// å±å¹•ä¸Šè¾“å‡ºä¿¡æ¯
 			if (endSignal == true) {
 				string t = ("Close connection with " + s + ":" + to_string(portNumber) + ".\n");
 				this->messageQueue.push(t);
@@ -245,12 +245,12 @@ void Server::receiveMessageFromClient(SOCKET client, size_t bufLen)
 			auto rcvlen = recv(client, currentRecvbuf, bufLen, 0);
 
 			if (rcvlen > 0) {
-				/* ¿Í»§¶Ë·¢À´ĞÅÏ¢ */
+				/* å®¢æˆ·ç«¯å‘æ¥ä¿¡æ¯ */
 				currentRecvbuf[rcvlen] = '\0';
 				httpRequest* hr = new httpRequest;
-				hr->phraseMessage(string(currentRecvbuf), client);	// ĞÂ½¨Ò»¸öHttpÇëÇóÏûÏ¢Àà£¬½âÎöËü
+				hr->phraseMessage(string(currentRecvbuf), client);	// æ–°å»ºä¸€ä¸ªHttpè¯·æ±‚æ¶ˆæ¯ç±»ï¼Œè§£æå®ƒ
 				mtx.lock();
-				// Êä³öÒ»Ğ©ÇëÇó²ÎÊı
+				// è¾“å‡ºä¸€äº›è¯·æ±‚å‚æ•°
 				string tmp = "\n\n\n  Requst Params: ";
 				tmp += ("Method: " + hr->method  + "\n");
 				tmp += ("URL: " + hr->url + "\n");
@@ -258,18 +258,18 @@ void Server::receiveMessageFromClient(SOCKET client, size_t bufLen)
 				for (auto itor = hr->rHeader->begin(); itor != hr->rHeader->end(); itor++) {
 					tmp += itor->first + ": " + itor->second + "\n";
 				}
-				if (hr->method == string("GET"))	//	Èç¹ûÊÇGET£¬Ã»ÓĞÊı¾İ¶Î
+				if (hr->method == string("GET"))	//	å¦‚æœæ˜¯GETï¼Œæ²¡æœ‰æ•°æ®æ®µ
 					tmp += "No data\n";
 				else
 					tmp += "Data: " + hr->data + "\n";
 				this->rnrQueue.push(tmp);
 				mtx.unlock();
-				sendMessageToClient(hr, homepage);	// ½âÎöºóµÄ½á¹û²úÉú»Ø¸´,·µ»¹¸ø¿Í»§¶Ë
+				sendMessageToClient(hr, homepage);	// è§£æåçš„ç»“æœäº§ç”Ÿå›å¤,è¿”è¿˜ç»™å®¢æˆ·ç«¯
 				delete hr;
 				delete currentRecvbuf;
 			}
 			else if (rcvlen == SOCKET_ERROR) {
-				// ½ÓÊÜ´íÎó
+				// æ¥å—é”™è¯¯
 				int portNumber = 0;
 				string s = GetClientAddress(client, portNumber);
 				closesocket(client);
@@ -282,8 +282,8 @@ void Server::receiveMessageFromClient(SOCKET client, size_t bufLen)
 }
 
 /*
-*	¸ù¾İ½âÎöºóµÄ½á¹û²úÉú»Ø¸´,·µ»¹¸ø¿Í»§¶Ë
-*	¼ÓÈë¶ÓÁĞÖĞÏÔÊ¾
+*	æ ¹æ®è§£æåçš„ç»“æœäº§ç”Ÿå›å¤,è¿”è¿˜ç»™å®¢æˆ·ç«¯
+*	åŠ å…¥é˜Ÿåˆ—ä¸­æ˜¾ç¤º
 */
 string Server::sendMessageToClient(httpRequest *requestFromClient, string defaultPage) {
 	httpResponse *hrsps = new httpResponse;
@@ -292,10 +292,10 @@ string Server::sendMessageToClient(httpRequest *requestFromClient, string defaul
 	string msg = hrsps->generateMessage(requestFromClient, defaultPage, tmp);
 	this->rnrQueue.push(tmp);
 	mtx.unlock();
-	send(hrsps->clientSocket, msg.c_str(), msg.length(), 0);	// ·¢ËÍÉú³ÉµÄĞÅÏ¢
+	send(hrsps->clientSocket, msg.c_str(), msg.length(), 0);	// å‘é€ç”Ÿæˆçš„ä¿¡æ¯
 
 	delete hrsps;
 	
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));	// ĞİÃß10ºÁÃë
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));	// ä¼‘çœ 10æ¯«ç§’
 	return tmp;
 }
